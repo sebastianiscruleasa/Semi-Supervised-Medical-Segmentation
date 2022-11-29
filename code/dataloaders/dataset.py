@@ -59,7 +59,7 @@ class BaseDataSets(Dataset):
         if self.split == "train":
             h5f = h5py.File(self._base_dir + "/data/slices/{}.h5".format(case), "r")
         else:
-            h5f = h5py.File(self._base_dir + "/data/{}.h5".format(case), "r")
+            h5f = h5py.File(self._base_dir + "/volumes/{}.h5".format(case), "r")
         image = h5f["image"][:]
         label = h5f["label"][:]
         sample = {"image": image, "label": label}
