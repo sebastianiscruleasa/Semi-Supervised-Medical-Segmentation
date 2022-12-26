@@ -137,3 +137,6 @@ test.py
 
 #PyCharm config
 /.idea/
+
+#ACDC dataset
+/data/ACDC/data/
