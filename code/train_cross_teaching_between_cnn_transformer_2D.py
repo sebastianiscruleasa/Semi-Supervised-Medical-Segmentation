@@ -167,9 +167,11 @@ def train(args, snapshot_path):
                 param.detach_()
         return model
 
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
     model1 = create_model()
     model2 = ViT_seg(config, img_size=args.patch_size,
-                     num_classes=args.num_classes).cuda()
+                     num_classes=args.num_classes).to(device)
     model2.load_from(config)
 
     def worker_init_fn(worker_id):
@@ -189,14 +191,25 @@ def train(args, snapshot_path):
     batch_sampler = TwoStreamBatchSampler(
         labeled_idxs, unlabeled_idxs, batch_size, batch_size-args.labeled_bs)
 
+    if device == "cuda":
+        train_num_workers = 4
+        val_num_workers = 1
+        pin_memory = True
+        worker_init_function = worker_init_fn
+    else:
+        train_num_workers = 0
+        val_num_workers = 0
+        pin_memory = False
+        worker_init_function = None
+
     trainloader = DataLoader(db_train, batch_sampler=batch_sampler,
-                             num_workers=4, pin_memory=True, worker_init_fn=worker_init_fn)
+                             num_workers=train_num_workers, pin_memory=pin_memory, worker_init_fn=worker_init_function)
 
     model1.train()
     model2.train()
 
     valloader = DataLoader(db_val, batch_size=1, shuffle=False,
-                           num_workers=1)
+                           num_workers=val_num_workers)
 
     optimizer1 = optim.SGD(model1.parameters(), lr=base_lr,
                            momentum=0.9, weight_decay=0.0001)
@@ -217,7 +230,7 @@ def train(args, snapshot_path):
         for i_batch, sampled_batch in enumerate(trainloader):
 
             volume_batch, label_batch = sampled_batch['image'], sampled_batch['label']
-            volume_batch, label_batch = volume_batch.cuda(), label_batch.cuda()
+            volume_batch, label_batch = volume_batch.to(device), label_batch.to(device)
 
             outputs1 = model1(volume_batch)
             outputs_soft1 = torch.softmax(outputs1, dim=1)
