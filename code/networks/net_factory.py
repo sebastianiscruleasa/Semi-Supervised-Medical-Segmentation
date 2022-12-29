@@ -1,12 +1,12 @@
 import torch
+import argparse
+from networks.unet import UNet, UNet_DS, UNet_URPC, UNet_CCT
 from networks.efficientunet import Effi_UNet
 from networks.enet import ENet
 from networks.pnet import PNet2D
-from networks.unet import UNet, UNet_DS, UNet_URPC, UNet_CCT
-import argparse
+from networks.nnunet import initialize_network
 from networks.vision_transformer import SwinUnet as ViT_seg
 from networks.config import get_config
-from networks.nnunet import initialize_network
 
 
 parser = argparse.ArgumentParser()
