@@ -1,18 +1,13 @@
 import argparse
 import os
 import shutil
-
 import h5py
-import nibabel as nib
 import numpy as np
 import SimpleITK as sitk
 import torch
 from medpy import metric
-from scipy.ndimage import zoom
 from scipy.ndimage.interpolation import zoom
 from tqdm import tqdm
-
-# from networks.efficientunet import UNet
 from networks.net_factory import net_factory
 
 parser = argparse.ArgumentParser()

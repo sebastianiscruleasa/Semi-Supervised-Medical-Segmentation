@@ -25,8 +25,6 @@ import time
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
-import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from tensorboardX import SummaryWriter
 from torch.nn.modules.loss import CrossEntropyLoss
@@ -39,7 +37,7 @@ from dataloaders.dataset import (BaseDataSets, RandomGenerator,
                                  TwoStreamBatchSampler)
 from networks.net_factory import net_factory
 from networks.vision_transformer import SwinUnet as ViT_seg
-from utils import losses, metrics, ramps
+from utils import losses, ramps
 from val_2D import test_single_volume
 
 parser = argparse.ArgumentParser()
@@ -106,26 +104,6 @@ args = parser.parse_args()
 config = get_config(args)
 
 
-def kaiming_normal_init_weight(model):
-    for m in model.modules():
-        if isinstance(m, nn.Conv2d):
-            torch.nn.init.kaiming_normal_(m.weight)
-        elif isinstance(m, nn.BatchNorm2d):
-            m.weight.data.fill_(1)
-            m.bias.data.zero_()
-    return model
-
-
-def xavier_normal_init_weight(model):
-    for m in model.modules():
-        if isinstance(m, nn.Conv2d):
-            torch.nn.init.xavier_normal_(m.weight)
-        elif isinstance(m, nn.BatchNorm2d):
-            m.weight.data.fill_(1)
-            m.bias.data.zero_()
-    return model
-
-
 def patients_to_slices(dataset, patiens_num):
     ref_dict = None
     if "ACDC" in dataset:
@@ -142,13 +120,6 @@ def patients_to_slices(dataset, patiens_num):
 def get_current_consistency_weight(epoch):
     # Consistency ramp-up from https://arxiv.org/abs/1610.02242
     return args.consistency * ramps.sigmoid_rampup(epoch, args.consistency_rampup)
-
-
-def update_ema_variables(model, ema_model, alpha, global_step):
-    # Use the true average until the exponential average is more correct
-    alpha = min(1 - 1 / (global_step + 1), alpha)
-    for ema_param, param in zip(ema_model.parameters(), model.parameters()):
-        ema_param.data.mul_(alpha).add_(1 - alpha, param.data)
 
 
 def train(args, snapshot_path):

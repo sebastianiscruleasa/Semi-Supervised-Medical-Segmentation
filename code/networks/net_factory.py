@@ -6,7 +6,7 @@ from networks.enet import ENet
 from networks.pnet import PNet2D
 from networks.nnunet import initialize_network
 from networks.vision_transformer import SwinUnet as ViT_seg
-from networks.config import get_config
+from config import get_config
 
 
 parser = argparse.ArgumentParser()
