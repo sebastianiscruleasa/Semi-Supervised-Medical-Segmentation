@@ -11,10 +11,7 @@ from torchvision import transforms
 import itertools
 from scipy import ndimage
 from torch.utils.data.sampler import Sampler
-import augmentations
-from augmentations.ctaugment import OPS
 import matplotlib.pyplot as plt
-from PIL import Image
 
 
 class BaseDataSets(Dataset):
@@ -101,47 +98,6 @@ def color_jitter(image):
     s = 1.0
     jitter = transforms.ColorJitter(0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s)
     return jitter(image)
-
-
-class CTATransform(object):
-    def __init__(self, output_size, cta):
-        self.output_size = output_size
-        self.cta = cta
-
-    def __call__(self, sample, ops_weak, ops_strong):
-        image, label = sample["image"], sample["label"]
-        image = self.resize(image)
-        label = self.resize(label)
-        to_tensor = transforms.ToTensor()
-
-        # fix dimensions
-        image = torch.from_numpy(image.astype(np.float32)).unsqueeze(0)
-        label = torch.from_numpy(label.astype(np.uint8))
-
-        # apply augmentations
-        image_weak = augmentations.cta_apply(transforms.ToPILImage()(image), ops_weak)
-        image_strong = augmentations.cta_apply(image_weak, ops_strong)
-        label_aug = augmentations.cta_apply(transforms.ToPILImage()(label), ops_weak)
-        label_aug = to_tensor(label_aug).squeeze(0)
-        label_aug = torch.round(255 * label_aug).int()
-
-        sample = {
-            "image_weak": to_tensor(image_weak),
-            "image_strong": to_tensor(image_strong),
-            "label_aug": label_aug,
-        }
-        return sample
-
-    def cta_apply(self, pil_img, ops):
-        if ops is None:
-            return pil_img
-        for op, args in ops:
-            pil_img = OPS[op].f(pil_img, *args)
-        return pil_img
-
-    def resize(self, image):
-        x, y = image.shape
-        return zoom(image, (self.output_size[0] / x, self.output_size[1] / y), order=0)
 
 
 class RandomGenerator(object):
