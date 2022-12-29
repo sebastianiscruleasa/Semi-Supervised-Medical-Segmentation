@@ -1,17 +1,12 @@
-import os
-import cv2
 import torch
 import random
 import numpy as np
-from glob import glob
 from torch.utils.data import Dataset
 import h5py
 from scipy.ndimage.interpolation import zoom
-from torchvision import transforms
 import itertools
 from scipy import ndimage
 from torch.utils.data.sampler import Sampler
-import matplotlib.pyplot as plt
 
 
 class BaseDataSets(Dataset):
@@ -89,17 +84,6 @@ def random_rotate(image, label):
     return image, label
 
 
-def color_jitter(image):
-    if not torch.is_tensor(image):
-        np_to_tensor = transforms.ToTensor()
-        image = np_to_tensor(image)
-
-    # s is the strength of color distortion.
-    s = 1.0
-    jitter = transforms.ColorJitter(0.8 * s, 0.8 * s, 0.8 * s, 0.2 * s)
-    return jitter(image)
-
-
 class RandomGenerator(object):
     def __init__(self, output_size):
         self.output_size = output_size
@@ -122,40 +106,23 @@ class RandomGenerator(object):
         return sample
 
 
-class WeakStrongAugment(object):
-    """returns weakly and strongly augmented images
+def iterate_once(iterable):
+    return np.random.permutation(iterable)
 
-    Args:
-        object (tuple): output size of network
-    """
 
-    def __init__(self, output_size):
-        self.output_size = output_size
+def iterate_eternally(indices):
+    def infinite_shuffles():
+        while True:
+            yield np.random.permutation(indices)
 
-    def __call__(self, sample):
-        image, label = sample["image"], sample["label"]
-        image = self.resize(image)
-        label = self.resize(label)
-        # weak augmentation is rotation / flip
-        image_weak, label = random_rot_flip(image, label)
-        # strong augmentation is color jitter
-        image_strong = color_jitter(image_weak).type("torch.FloatTensor")
-        # fix dimensions
-        image = torch.from_numpy(image.astype(np.float32)).unsqueeze(0)
-        image_weak = torch.from_numpy(image_weak.astype(np.float32)).unsqueeze(0)
-        label = torch.from_numpy(label.astype(np.uint8))
+    return itertools.chain.from_iterable(infinite_shuffles())
 
-        sample = {
-            "image": image,
-            "image_weak": image_weak,
-            "image_strong": image_strong,
-            "label_aug": label,
-        }
-        return sample
 
-    def resize(self, image):
-        x, y = image.shape
-        return zoom(image, (self.output_size[0] / x, self.output_size[1] / y), order=0)
+def grouper(iterable, n):
+    "Collect data into fixed-length chunks or blocks"
+    # grouper('ABCDEFG', 3) --> ABC DEF"
+    args = [iter(iterable)] * n
+    return zip(*args)
 
 
 class TwoStreamBatchSampler(Sampler):
@@ -188,22 +155,3 @@ class TwoStreamBatchSampler(Sampler):
 
     def __len__(self):
         return len(self.primary_indices) // self.primary_batch_size
-
-
-def iterate_once(iterable):
-    return np.random.permutation(iterable)
-
-
-def iterate_eternally(indices):
-    def infinite_shuffles():
-        while True:
-            yield np.random.permutation(indices)
-
-    return itertools.chain.from_iterable(infinite_shuffles())
-
-
-def grouper(iterable, n):
-    "Collect data into fixed-length chunks or blocks"
-    # grouper('ABCDEFG', 3) --> ABC DEF"
-    args = [iter(iterable)] * n
-    return zip(*args)

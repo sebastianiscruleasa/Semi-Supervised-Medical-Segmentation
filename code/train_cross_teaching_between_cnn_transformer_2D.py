@@ -35,7 +35,6 @@ from torchvision import transforms
 from tqdm import tqdm
 
 from config import get_config
-from dataloaders import utils
 from dataloaders.dataset import (BaseDataSets, RandomGenerator,
                                  TwoStreamBatchSampler)
 from networks.net_factory import net_factory
