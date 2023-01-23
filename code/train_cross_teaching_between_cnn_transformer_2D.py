@@ -142,7 +142,7 @@ def train(args, snapshot_path):
     model1 = create_model()
     model2 = ViT_seg(config, img_size=args.patch_size,
                      num_classes=args.num_classes).to(device)
-    model2.load_from(config)
+    #model2.load_from(config)
 
     def worker_init_fn(worker_id):
         random.seed(args.seed + worker_id)
@@ -195,7 +195,20 @@ def train(args, snapshot_path):
     max_epoch = max_iterations // len(trainloader) + 1
     best_performance1 = 0.0
     best_performance2 = 0.0
-    iterator = tqdm(range(max_epoch), ncols=70)
+
+    if config.MODEL.PRETRAIN_CKPT_MODEL1 is not None:
+        loaded_model1 = torch.load(config.MODEL.PRETRAIN_CKPT_MODEL1)
+        epoch = loaded_model1["epoch"]
+        iter_num = loaded_model1["iter"]
+        model1.load_state_dict(loaded_model1["model"])
+        optimizer1.load_state_dict(loaded_model1["optimizer"])
+
+    if config.MODEL.PRETRAIN_CKPT_MODEL2 is not None:
+        loaded_model2 = torch.load(config.MODEL.PRETRAIN_CKPT_MODEL2)
+        model1.load_state_dict(loaded_model2["model"])
+        optimizer1.load_state_dict(loaded_model2["optimizer"])
+
+    iterator = tqdm(range(epoch, max_epoch), ncols=70)
     for epoch_num in iterator:
         for i_batch, sampled_batch in enumerate(trainloader):
 
@@ -298,8 +311,22 @@ def train(args, snapshot_path):
                                                       iter_num, round(best_performance1, 4)))
                     save_best = os.path.join(snapshot_path,
                                              '{}_best_model1.pth'.format(args.model))
-                    torch.save(model1.state_dict(), save_mode_path)
-                    torch.save(model1.state_dict(), save_best)
+                    # torch.save(model1.state_dict(), save_mode_path)
+                    # torch.save(model1.state_dict(), save_best)
+                    torch.save({
+                        'model': model1.state.dict(),
+                        'optimizer': optimizer1.state.dict(),
+                        'epoch': epoch_num,
+                        'iter': iter_num,
+                        'loss': model1_loss
+                    }, save_mode_path)
+                    torch.save({
+                        'model': model1.state.dict(),
+                        'optimizer': optimizer1.state.dict(),
+                        'epoch': epoch_num,
+                        'iter': iter_num,
+                        'loss': model1_loss
+                    }, save_best)
 
                 logging.info(
                     'iteration %d : model1_mean_dice : %f model1_mean_hd95 : %f' % (iter_num, performance1, mean_hd951))
@@ -333,8 +360,22 @@ def train(args, snapshot_path):
                                                       iter_num, round(best_performance2, 4)))
                     save_best = os.path.join(snapshot_path,
                                              '{}_best_model2.pth'.format(args.model))
-                    torch.save(model2.state_dict(), save_mode_path)
-                    torch.save(model2.state_dict(), save_best)
+                    #torch.save(model2.state_dict(), save_mode_path)
+                    #torch.save(model2.state_dict(), save_best)
+                    torch.save({
+                        'model': model2.state.dict(),
+                        'optimizer': optimizer2.state.dict(),
+                        'epoch': epoch_num,
+                        'iter': iter_num,
+                        'loss': model2_loss
+                    }, save_mode_path)
+                    torch.save({
+                        'model': model2.state.dict(),
+                        'optimizer': optimizer2.state.dict(),
+                        'epoch': epoch_num,
+                        'iter': iter_num,
+                        'loss': model2_loss
+                    }, save_best)
 
                 logging.info(
                     'iteration %d : model2_mean_dice : %f model2_mean_hd95 : %f' % (iter_num, performance2, mean_hd952))
