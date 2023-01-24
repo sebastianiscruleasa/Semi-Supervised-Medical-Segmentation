@@ -278,7 +278,7 @@ def train(args, snapshot_path):
             time1 = time.time()
 
         drive_snapshot_path = "/content/gdrive/MyDrive/Licenta/Semi_Supervised_Medical_Segmentation_Checkpoints"
-        if epoch_num % 100 == 0 or epoch_num == 0:
+        if epoch_num % 5 == 0:
             shutil.rmtree(drive_snapshot_path + "/epochs")
             os.mkdir(drive_snapshot_path + "/epochs")
 
