@@ -196,6 +196,8 @@ def train(args, snapshot_path):
     best_performance1 = 0.0
     best_performance2 = 0.0
 
+    epoch = 0
+
     if config.MODEL.PRETRAIN_CKPT_MODEL1 is not None:
         loaded_model1 = torch.load(config.MODEL.PRETRAIN_CKPT_MODEL1)
         epoch = loaded_model1["epoch"]
@@ -205,8 +207,8 @@ def train(args, snapshot_path):
 
     if config.MODEL.PRETRAIN_CKPT_MODEL2 is not None:
         loaded_model2 = torch.load(config.MODEL.PRETRAIN_CKPT_MODEL2)
-        model1.load_state_dict(loaded_model2["model"])
-        optimizer1.load_state_dict(loaded_model2["optimizer"])
+        model2.load_state_dict(loaded_model2["model"])
+        optimizer2.load_state_dict(loaded_model2["optimizer"])
 
     iterator = tqdm(range(epoch, max_epoch), ncols=70)
     for epoch_num in iterator:
@@ -311,18 +313,16 @@ def train(args, snapshot_path):
                                                       iter_num, round(best_performance1, 4)))
                     save_best = os.path.join(snapshot_path,
                                              '{}_best_model1.pth'.format(args.model))
-                    # torch.save(model1.state_dict(), save_mode_path)
-                    # torch.save(model1.state_dict(), save_best)
                     torch.save({
-                        'model': model1.state.dict(),
-                        'optimizer': optimizer1.state.dict(),
+                        'model': model1.state_dict(),
+                        'optimizer': optimizer1.state_dict(),
                         'epoch': epoch_num,
                         'iter': iter_num,
                         'loss': model1_loss
                     }, save_mode_path)
                     torch.save({
-                        'model': model1.state.dict(),
-                        'optimizer': optimizer1.state.dict(),
+                        'model': model1.state_dict(),
+                        'optimizer': optimizer1.state_dict(),
                         'epoch': epoch_num,
                         'iter': iter_num,
                         'loss': model1_loss
@@ -360,18 +360,16 @@ def train(args, snapshot_path):
                                                       iter_num, round(best_performance2, 4)))
                     save_best = os.path.join(snapshot_path,
                                              '{}_best_model2.pth'.format(args.model))
-                    #torch.save(model2.state_dict(), save_mode_path)
-                    #torch.save(model2.state_dict(), save_best)
                     torch.save({
-                        'model': model2.state.dict(),
-                        'optimizer': optimizer2.state.dict(),
+                        'model': model2.state_dict(),
+                        'optimizer': optimizer2.state_dict(),
                         'epoch': epoch_num,
                         'iter': iter_num,
                         'loss': model2_loss
                     }, save_mode_path)
                     torch.save({
-                        'model': model2.state.dict(),
-                        'optimizer': optimizer2.state.dict(),
+                        'model': model2.state_dict(),
+                        'optimizer': optimizer2.state_dict(),
                         'epoch': epoch_num,
                         'iter': iter_num,
                         'loss': model2_loss
