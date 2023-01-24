@@ -270,12 +270,17 @@ def train(args, snapshot_path):
             writer.add_scalar('loss/model2_loss',
                               model2_loss, iter_num)
 
+            logging.info('iteration %d : model1 loss : %f model2 loss : %f' % (
+                iter_num, model1_loss.item(), model2_loss.item()))
+
             if iter_num >= max_iterations:
                 break
             time1 = time.time()
 
-        logging.info('epoch %d : model1 loss : %f model2 loss : %f' % (
-            epoch_num, model1_loss.item(), model2_loss.item()))
+        drive_snapshot_path = "/content/gdrive/MyDrive/Licenta/Semi_Supervised_Medical_Segmentation_Checkpoints"
+        if epoch_num % 100 == 0 or epoch_num == 0:
+            shutil.rmtree(drive_snapshot_path + "/epochs")
+            os.mkdir(drive_snapshot_path + "/epochs")
 
         # adding image data to tensorboard summary
 
@@ -314,28 +319,29 @@ def train(args, snapshot_path):
         writer.add_scalar('info/model1_val_mean_hd95',
                           mean_hd951, epoch_num)
 
+        save_mode_path = os.path.join(drive_snapshot_path,
+                                      'epochs/model1_epoch_{}_dice_{}.pth'.format(
+                                          epoch_num, round(best_performance1, 4)))
+        torch.save({
+            'model': model1.state_dict(),
+            'optimizer': optimizer1.state_dict(),
+            'epoch': epoch_num,
+            'loss': model1_loss
+        }, save_mode_path)
+
         if performance1 > best_performance1:
             best_performance1 = performance1
-            save_mode_path = os.path.join(snapshot_path,
-                                          'model1_epoch_{}_dice_{}.pth'.format(
-                                              epoch_num, round(best_performance1, 4)))
-            save_best = os.path.join(snapshot_path,
+            save_best = os.path.join(drive_snapshot_path,
                                      '{}_best_model1.pth'.format(args.model))
             torch.save({
                 'model': model1.state_dict(),
                 'optimizer': optimizer1.state_dict(),
                 'epoch': epoch_num,
                 'loss': model1_loss
-            }, save_mode_path)
-            torch.save({
-                'model': model1.state_dict(),
-                'optimizer': optimizer1.state_dict(),
-                'epoch': epoch_num,
-                'loss': model1_loss
             }, save_best)
+            logging.info(
+                'epoch %d : model1_mean_dice : %f model1_mean_hd95 : %f' % (epoch_num, performance1, mean_hd951))
 
-        logging.info(
-            'epoch %d : model1_mean_dice : %f model1_mean_hd95 : %f' % (epoch_num, performance1, mean_hd951))
         model1.train()
 
         model2.eval()
@@ -359,26 +365,27 @@ def train(args, snapshot_path):
         writer.add_scalar('info/model2_val_mean_hd95',
                           mean_hd952, epoch_num)
 
+        save_mode_path = os.path.join(drive_snapshot_path,
+                                      'epochs/model2_epoch_{}_dice_{}.pth'.format(
+                                          epoch_num, round(best_performance2, 4)))
+        torch.save({
+            'model': model2.state_dict(),
+            'optimizer': optimizer2.state_dict(),
+            'loss': model2_loss
+        }, save_mode_path)
+
         if performance2 > best_performance2:
             best_performance2 = performance2
-            save_mode_path = os.path.join(snapshot_path,
-                                          'model2_epoch_{}_dice_{}.pth'.format(
-                                              epoch_num, round(best_performance2, 4)))
-            save_best = os.path.join(snapshot_path,
+            save_best = os.path.join(drive_snapshot_path,
                                      '{}_best_model2.pth'.format(args.model))
             torch.save({
                 'model': model2.state_dict(),
                 'optimizer': optimizer2.state_dict(),
                 'loss': model2_loss
-            }, save_mode_path)
-            torch.save({
-                'model': model2.state_dict(),
-                'optimizer': optimizer2.state_dict(),
-                'loss': model2_loss
             }, save_best)
+            logging.info(
+                'epoch %d : model2_mean_dice : %f model2_mean_hd95 : %f' % (epoch_num, performance2, mean_hd952))
 
-        logging.info(
-            'epoch %d : model2_mean_dice : %f model2_mean_hd95 : %f' % (epoch_num, performance2, mean_hd952))
         model2.train()
 
         if iter_num >= max_iterations:
@@ -406,10 +413,6 @@ if __name__ == "__main__":
         args.exp, args.labeled_num, args.model)
     if not os.path.exists(snapshot_path):
         os.makedirs(snapshot_path)
-    if os.path.exists(snapshot_path + '/code'):
-        shutil.rmtree(snapshot_path + '/code')
-    shutil.copytree('.', snapshot_path + '/code',
-                    shutil.ignore_patterns(['.git', '__pycache__']))
 
     logging.basicConfig(filename=snapshot_path+"/log.txt", level=logging.INFO,
                         format='[%(asctime)s.%(msecs)03d] %(message)s', datefmt='%H:%M:%S')
