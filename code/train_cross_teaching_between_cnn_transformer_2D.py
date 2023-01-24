@@ -197,11 +197,12 @@ def train(args, snapshot_path):
     best_performance2 = 0.0
 
     epoch = 0
+    model1_loss = 0
+    model2_loss = 0
 
     if config.MODEL.PRETRAIN_CKPT_MODEL1 is not None:
         loaded_model1 = torch.load(config.MODEL.PRETRAIN_CKPT_MODEL1)
         epoch = loaded_model1["epoch"]
-        iter_num = loaded_model1["iter"]
         model1.load_state_dict(loaded_model1["model"])
         optimizer1.load_state_dict(loaded_model1["optimizer"])
 
@@ -268,134 +269,123 @@ def train(args, snapshot_path):
                               model1_loss, iter_num)
             writer.add_scalar('loss/model2_loss',
                               model2_loss, iter_num)
-            logging.info('iteration %d : model1 loss : %f model2 loss : %f' % (
-                iter_num, model1_loss.item(), model2_loss.item()))
-            if iter_num % 50 == 0:
-                image = volume_batch[1, 0:1, :, :]
-                writer.add_image('train/Image', image, iter_num)
-                outputs = torch.argmax(torch.softmax(
-                    outputs1, dim=1), dim=1, keepdim=True)
-                writer.add_image('train/model1_Prediction',
-                                 outputs[1, ...] * 50, iter_num)
-                outputs = torch.argmax(torch.softmax(
-                    outputs2, dim=1), dim=1, keepdim=True)
-                writer.add_image('train/model2_Prediction',
-                                 outputs[1, ...] * 50, iter_num)
-                labs = label_batch[1, ...].unsqueeze(0) * 50
-                writer.add_image('train/GroundTruth', labs, iter_num)
-
-            if iter_num > 0 and iter_num % 200 == 0:
-                model1.eval()
-                metric_list = 0.0
-                for i_batch, sampled_batch in enumerate(valloader):
-                    metric_i = test_single_volume(
-                        sampled_batch["image"], sampled_batch["label"], model1, classes=num_classes, patch_size=args.patch_size)
-                    metric_list += np.array(metric_i)
-                metric_list = metric_list / len(db_val)
-                for class_i in range(num_classes-1):
-                    writer.add_scalar('info/model1_val_{}_dice'.format(class_i+1),
-                                      metric_list[class_i, 0], iter_num)
-                    writer.add_scalar('info/model1_val_{}_hd95'.format(class_i+1),
-                                      metric_list[class_i, 1], iter_num)
-
-                performance1 = np.mean(metric_list, axis=0)[0]
-
-                mean_hd951 = np.mean(metric_list, axis=0)[1]
-                writer.add_scalar('info/model1_val_mean_dice',
-                                  performance1, iter_num)
-                writer.add_scalar('info/model1_val_mean_hd95',
-                                  mean_hd951, iter_num)
-
-                if performance1 > best_performance1:
-                    best_performance1 = performance1
-                    save_mode_path = os.path.join(snapshot_path,
-                                                  'model1_iter_{}_dice_{}.pth'.format(
-                                                      iter_num, round(best_performance1, 4)))
-                    save_best = os.path.join(snapshot_path,
-                                             '{}_best_model1.pth'.format(args.model))
-                    torch.save({
-                        'model': model1.state_dict(),
-                        'optimizer': optimizer1.state_dict(),
-                        'epoch': epoch_num,
-                        'iter': iter_num,
-                        'loss': model1_loss
-                    }, save_mode_path)
-                    torch.save({
-                        'model': model1.state_dict(),
-                        'optimizer': optimizer1.state_dict(),
-                        'epoch': epoch_num,
-                        'iter': iter_num,
-                        'loss': model1_loss
-                    }, save_best)
-
-                logging.info(
-                    'iteration %d : model1_mean_dice : %f model1_mean_hd95 : %f' % (iter_num, performance1, mean_hd951))
-                model1.train()
-
-                model2.eval()
-                metric_list = 0.0
-                for i_batch, sampled_batch in enumerate(valloader):
-                    metric_i = test_single_volume(
-                        sampled_batch["image"], sampled_batch["label"], model2, classes=num_classes, patch_size=args.patch_size)
-                    metric_list += np.array(metric_i)
-                metric_list = metric_list / len(db_val)
-                for class_i in range(num_classes-1):
-                    writer.add_scalar('info/model2_val_{}_dice'.format(class_i+1),
-                                      metric_list[class_i, 0], iter_num)
-                    writer.add_scalar('info/model2_val_{}_hd95'.format(class_i+1),
-                                      metric_list[class_i, 1], iter_num)
-
-                performance2 = np.mean(metric_list, axis=0)[0]
-
-                mean_hd952 = np.mean(metric_list, axis=0)[1]
-                writer.add_scalar('info/model2_val_mean_dice',
-                                  performance2, iter_num)
-                writer.add_scalar('info/model2_val_mean_hd95',
-                                  mean_hd952, iter_num)
-
-                if performance2 > best_performance2:
-                    best_performance2 = performance2
-                    save_mode_path = os.path.join(snapshot_path,
-                                                  'model2_iter_{}_dice_{}.pth'.format(
-                                                      iter_num, round(best_performance2, 4)))
-                    save_best = os.path.join(snapshot_path,
-                                             '{}_best_model2.pth'.format(args.model))
-                    torch.save({
-                        'model': model2.state_dict(),
-                        'optimizer': optimizer2.state_dict(),
-                        'epoch': epoch_num,
-                        'iter': iter_num,
-                        'loss': model2_loss
-                    }, save_mode_path)
-                    torch.save({
-                        'model': model2.state_dict(),
-                        'optimizer': optimizer2.state_dict(),
-                        'epoch': epoch_num,
-                        'iter': iter_num,
-                        'loss': model2_loss
-                    }, save_best)
-
-                logging.info(
-                    'iteration %d : model2_mean_dice : %f model2_mean_hd95 : %f' % (iter_num, performance2, mean_hd952))
-                model2.train()
-
-            if iter_num % 3000 == 0:
-                save_mode_path = os.path.join(
-                    snapshot_path, 'model1_iter_' + str(iter_num) + '.pth')
-                torch.save(model1.state_dict(), save_mode_path)
-                logging.info("save model1 to {}".format(save_mode_path))
-
-                save_mode_path = os.path.join(
-                    snapshot_path, 'model2_iter_' + str(iter_num) + '.pth')
-                torch.save(model2.state_dict(), save_mode_path)
-                logging.info("save model2 to {}".format(save_mode_path))
 
             if iter_num >= max_iterations:
                 break
             time1 = time.time()
+
+        logging.info('epoch %d : model1 loss : %f model2 loss : %f' % (
+            epoch_num, model1_loss.item(), model2_loss.item()))
+
+        # adding image data to tensorboard summary
+
+        # code commented for now until I figure out what is with the * 50, whether is related to the fact
+        # that this was done before for every 50 iterations
+        # image = volume_batch[1, 0:1, :, :]
+        # writer.add_image('train/Image', image, epoch_num)
+        # outputs = torch.argmax(torch.softmax(
+        #     outputs1, dim=1), dim=1, keepdim=True)
+        # writer.add_image('train/model1_Prediction',
+        #                  outputs[1, ...] * 50, epoch_num)
+        # outputs = torch.argmax(torch.softmax(
+        #     outputs2, dim=1), dim=1, keepdim=True)
+        # writer.add_image('train/model2_Prediction',
+        #                  outputs[1, ...] * 50, epoch_num)
+
+        #saving checkpoints after every epoch and updating best model if neccesary
+        model1.eval()
+        metric_list = 0.0
+        for i_batch, sampled_batch in enumerate(valloader):
+            metric_i = test_single_volume(
+                sampled_batch["image"], sampled_batch["label"], model1, classes=num_classes, patch_size=args.patch_size)
+            metric_list += np.array(metric_i)
+        metric_list = metric_list / len(db_val)
+        for class_i in range(num_classes - 1):
+            writer.add_scalar('info/model1_val_{}_dice'.format(class_i + 1),
+                              metric_list[class_i, 0], epoch_num)
+            writer.add_scalar('info/model1_val_{}_hd95'.format(class_i + 1),
+                              metric_list[class_i, 1], epoch_num)
+
+        performance1 = np.mean(metric_list, axis=0)[0]
+
+        mean_hd951 = np.mean(metric_list, axis=0)[1]
+        writer.add_scalar('info/model1_val_mean_dice',
+                          performance1, epoch_num)
+        writer.add_scalar('info/model1_val_mean_hd95',
+                          mean_hd951, epoch_num)
+
+        if performance1 > best_performance1:
+            best_performance1 = performance1
+            save_mode_path = os.path.join(snapshot_path,
+                                          'model1_epoch_{}_dice_{}.pth'.format(
+                                              epoch_num, round(best_performance1, 4)))
+            save_best = os.path.join(snapshot_path,
+                                     '{}_best_model1.pth'.format(args.model))
+            torch.save({
+                'model': model1.state_dict(),
+                'optimizer': optimizer1.state_dict(),
+                'epoch': epoch_num,
+                'loss': model1_loss
+            }, save_mode_path)
+            torch.save({
+                'model': model1.state_dict(),
+                'optimizer': optimizer1.state_dict(),
+                'epoch': epoch_num,
+                'loss': model1_loss
+            }, save_best)
+
+        logging.info(
+            'epoch %d : model1_mean_dice : %f model1_mean_hd95 : %f' % (epoch_num, performance1, mean_hd951))
+        model1.train()
+
+        model2.eval()
+        metric_list = 0.0
+        for i_batch, sampled_batch in enumerate(valloader):
+            metric_i = test_single_volume(
+                sampled_batch["image"], sampled_batch["label"], model2, classes=num_classes, patch_size=args.patch_size)
+            metric_list += np.array(metric_i)
+        metric_list = metric_list / len(db_val)
+        for class_i in range(num_classes - 1):
+            writer.add_scalar('info/model2_val_{}_dice'.format(class_i + 1),
+                              metric_list[class_i, 0], epoch_num)
+            writer.add_scalar('info/model2_val_{}_hd95'.format(class_i + 1),
+                              metric_list[class_i, 1], epoch_num)
+
+        performance2 = np.mean(metric_list, axis=0)[0]
+
+        mean_hd952 = np.mean(metric_list, axis=0)[1]
+        writer.add_scalar('info/model2_val_mean_dice',
+                          performance2, epoch_num)
+        writer.add_scalar('info/model2_val_mean_hd95',
+                          mean_hd952, epoch_num)
+
+        if performance2 > best_performance2:
+            best_performance2 = performance2
+            save_mode_path = os.path.join(snapshot_path,
+                                          'model2_epoch_{}_dice_{}.pth'.format(
+                                              epoch_num, round(best_performance2, 4)))
+            save_best = os.path.join(snapshot_path,
+                                     '{}_best_model2.pth'.format(args.model))
+            torch.save({
+                'model': model2.state_dict(),
+                'optimizer': optimizer2.state_dict(),
+                'loss': model2_loss
+            }, save_mode_path)
+            torch.save({
+                'model': model2.state_dict(),
+                'optimizer': optimizer2.state_dict(),
+                'loss': model2_loss
+            }, save_best)
+
+        logging.info(
+            'epoch %d : model2_mean_dice : %f model2_mean_hd95 : %f' % (epoch_num, performance2, mean_hd952))
+        model2.train()
+
         if iter_num >= max_iterations:
             iterator.close()
             break
+        labs = label_batch[1, ...].unsqueeze(0) * 50
+        writer.add_image('train/GroundTruth', labs, epoch_num)
     writer.close()
 
 
