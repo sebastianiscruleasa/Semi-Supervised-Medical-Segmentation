@@ -293,10 +293,12 @@ def train(args, snapshot_path):
 
         #delete the trash from the google drive
         for a_file in my_drive.ListFile({'q': "trashed = true"}).GetList():
-            # print the name of the file being deleted.
-            print('delete works')
-            # delete the file permanently.
-            a_file.Delete()
+            try:
+                # delete the file permanently.
+                a_file.Delete()
+            except:
+                print('Already deleted')
+
 
         # adding image data to tensorboard summary
 
