@@ -40,6 +40,11 @@ from networks.vision_transformer import SwinUnet as ViT_seg
 from utils import losses, ramps
 from val_2D import test_single_volume
 
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+from google.colab import auth
+from oauth2client.client import GoogleCredentials
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--root_path', type=str,
                     default='../data/ACDC', help='Name of Experiment')
@@ -212,6 +217,10 @@ def train(args, snapshot_path):
         model2.load_state_dict(loaded_model2["model"])
         optimizer2.load_state_dict(loaded_model2["optimizer"])
 
+    auth.authenticate_user()
+    gauth = GoogleAuth()
+    gauth.credentials = GoogleCredentials.get_application_default()
+    my_drive = GoogleDrive(gauth)
     iterator = tqdm(range(epoch, max_epoch), ncols=70)
     for epoch_num in iterator:
         for i_batch, sampled_batch in enumerate(trainloader):
@@ -279,9 +288,15 @@ def train(args, snapshot_path):
             time1 = time.time()
 
         drive_snapshot_path = "/content/gdrive/MyDrive/Licenta/Semi_Supervised_Medical_Segmentation_Checkpoints"
-        if epoch_num % 5 == 0:
-            shutil.rmtree(drive_snapshot_path + "/epochs")
-            os.mkdir(drive_snapshot_path + "/epochs")
+        shutil.rmtree(drive_snapshot_path + "/epochs")
+        os.mkdir(drive_snapshot_path + "/epochs")
+
+        #delete the trash from the google drive
+        for a_file in my_drive.ListFile({'q': "trashed = true"}).GetList():
+            # print the name of the file being deleted.
+            print('delete works')
+            # delete the file permanently.
+            a_file.Delete()
 
         # adding image data to tensorboard summary
 
