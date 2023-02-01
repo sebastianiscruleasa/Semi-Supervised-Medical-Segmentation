@@ -18,7 +18,6 @@ import argparse
 import logging
 import os
 import random
-import shutil
 import sys
 import time
 
@@ -39,11 +38,6 @@ from networks.net_factory import net_factory
 from networks.vision_transformer import SwinUnet as ViT_seg
 from utils import losses, ramps
 from val_2D import test_single_volume
-
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
-from google.colab import auth
-from oauth2client.client import GoogleCredentials
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--root_path', type=str,
@@ -217,10 +211,6 @@ def train(args, snapshot_path):
         model2.load_state_dict(loaded_model2["model"])
         optimizer2.load_state_dict(loaded_model2["optimizer"])
 
-    auth.authenticate_user()
-    gauth = GoogleAuth()
-    gauth.credentials = GoogleCredentials.get_application_default()
-    my_drive = GoogleDrive(gauth)
     iterator = tqdm(range(epoch, max_epoch), ncols=70)
     for epoch_num in iterator:
         for i_batch, sampled_batch in enumerate(trainloader):
@@ -287,19 +277,6 @@ def train(args, snapshot_path):
                 break
             time1 = time.time()
 
-        drive_snapshot_path = "/content/gdrive/MyDrive/Licenta/Semi_Supervised_Medical_Segmentation_Checkpoints"
-        shutil.rmtree(drive_snapshot_path + "/epochs")
-        os.mkdir(drive_snapshot_path + "/epochs")
-
-        #delete the trash from the google drive
-        for a_file in my_drive.ListFile({'q': "trashed = true"}).GetList():
-            try:
-                # delete the file permanently.
-                a_file.Delete()
-            except:
-                print('Already deleted')
-
-
         # adding image data to tensorboard summary
 
         # code commented for now until I figure out what is with the * 50, whether is related to the fact
@@ -337,6 +314,7 @@ def train(args, snapshot_path):
         writer.add_scalar('info/model1_val_mean_hd95',
                           mean_hd951, epoch_num)
 
+        drive_snapshot_path = "/content/gdrive/MyDrive/Licenta/Semi_Supervised_Medical_Segmentation_Checkpoints"
         save_mode_path = os.path.join(drive_snapshot_path,
                                       'epochs/model1_epoch_{}_dice_{}.pth'.format(
                                           epoch_num, round(best_performance1, 4)))
@@ -407,6 +385,12 @@ def train(args, snapshot_path):
                 'epoch %d : model2_mean_dice : %f model2_mean_hd95 : %f' % (epoch_num, performance2, mean_hd952))
 
         model2.train()
+
+        for filename in os.listdir(drive_snapshot_path + "/epochs"):
+            if filename.find('_epoch_' + epoch_num) == -1:
+                file_path = os.path.join(drive_snapshot_path + "/epochs", filename)
+                open(file_path, 'w').close()
+                os.remove(file_path)
 
         if iter_num >= max_iterations:
             iterator.close()
