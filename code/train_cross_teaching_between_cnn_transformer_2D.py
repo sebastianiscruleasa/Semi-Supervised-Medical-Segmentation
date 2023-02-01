@@ -205,11 +205,13 @@ def train(args, snapshot_path):
         iter_num = loaded_model1["iter"]
         model1.load_state_dict(loaded_model1["model"])
         optimizer1.load_state_dict(loaded_model1["optimizer"])
+        best_performance1 = loaded_model1["best_performance1"]
 
     if config.MODEL.PRETRAIN_CKPT_MODEL2 is not None:
         loaded_model2 = torch.load(config.MODEL.PRETRAIN_CKPT_MODEL2)
         model2.load_state_dict(loaded_model2["model"])
         optimizer2.load_state_dict(loaded_model2["optimizer"])
+        best_performance2 = loaded_model2["best_performance2"]
 
     iterator = tqdm(range(epoch, max_epoch), ncols=70)
     for epoch_num in iterator:
@@ -324,6 +326,7 @@ def train(args, snapshot_path):
             'epoch': epoch_num,
             'loss': model1_loss,
             'iter': iter_num,
+            'best_performance1': performance1 if performance1 > best_performance1 else best_performance1
         }, save_mode_path)
 
         if performance1 > best_performance1:
@@ -369,7 +372,8 @@ def train(args, snapshot_path):
         torch.save({
             'model': model2.state_dict(),
             'optimizer': optimizer2.state_dict(),
-            'loss': model2_loss
+            'loss': model2_loss,
+            'best_performance2': performance2 if performance2 > best_performance2 else best_performance2
         }, save_mode_path)
 
         if performance2 > best_performance2:
@@ -387,7 +391,7 @@ def train(args, snapshot_path):
         model2.train()
 
         for filename in os.listdir(drive_snapshot_path + "/epochs"):
-            if filename.find('_epoch_' + epoch_num) == -1:
+            if filename.find('_epoch_' + str(epoch_num)) == -1:
                 file_path = os.path.join(drive_snapshot_path + "/epochs", filename)
                 open(file_path, 'w').close()
                 os.remove(file_path)
