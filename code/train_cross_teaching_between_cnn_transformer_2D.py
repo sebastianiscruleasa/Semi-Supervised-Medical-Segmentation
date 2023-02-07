@@ -201,7 +201,7 @@ def train(args, snapshot_path):
 
     if config.MODEL.PRETRAIN_CKPT_MODEL1 is not None:
         loaded_model1 = torch.load(config.MODEL.PRETRAIN_CKPT_MODEL1)
-        epoch = loaded_model1["epoch"]
+        epoch = loaded_model1["epoch"] + 1
         iter_num = loaded_model1["iter"]
         model1.load_state_dict(loaded_model1["model"])
         optimizer1.load_state_dict(loaded_model1["optimizer"])

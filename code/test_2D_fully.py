@@ -76,8 +76,6 @@ def Inference(FLAGS):
         image_list = f.readlines()
     image_list = sorted([item.replace('\n', '').split(".")[0]
                          for item in image_list])
-    snapshot_path = "../model/{}_{}_labeled/{}".format(
-        FLAGS.exp, FLAGS.labeled_num, FLAGS.model)
     test_save_path = "../model/{}_{}_labeled/{}_predictions/".format(
         FLAGS.exp, FLAGS.labeled_num, FLAGS.model)
     if os.path.exists(test_save_path):
@@ -85,10 +83,9 @@ def Inference(FLAGS):
     os.makedirs(test_save_path)
     net = net_factory(net_type=FLAGS.model, in_chns=1,
                       class_num=FLAGS.num_classes)
-    save_mode_path = os.path.join(
-        snapshot_path, '{}_best_model.pth'.format(FLAGS.model))
-    net.load_state_dict(torch.load(save_mode_path))
-    print("init weight from {}".format(save_mode_path))
+    snapshot_path = "../../gdrive/MyDrive/Licenta/Semi_Supervised_Medical_Segmentation_Checkpoints/unet_best_model1.pth"
+    net.load_state_dict(torch.load(snapshot_path))
+    print("init weight from {}".format(snapshot_path))
     net.eval()
 
     first_total = 0.0
