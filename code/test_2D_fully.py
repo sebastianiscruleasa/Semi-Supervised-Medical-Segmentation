@@ -33,7 +33,7 @@ def calculate_metric_percase(pred, gt):
 
 
 def test_single_volume(case, net, test_save_path, FLAGS):
-    h5f = h5py.File(FLAGS.root_path + "/data/{}.h5".format(case), 'r')
+    h5f = h5py.File(FLAGS.root_path + "/data/volumes/{}.h5".format(case), 'r')
     image = h5f['image'][:]
     label = h5f['label'][:]
     prediction = np.zeros_like(label)
@@ -84,7 +84,7 @@ def Inference(FLAGS):
     net = net_factory(net_type=FLAGS.model, in_chns=1,
                       class_num=FLAGS.num_classes)
     snapshot_path = "../../gdrive/MyDrive/Licenta/Semi_Supervised_Medical_Segmentation_Checkpoints/unet_best_model1.pth"
-    net.load_state_dict(torch.load(snapshot_path))
+    net.load_state_dict(torch.load(snapshot_path)["model"])
     print("init weight from {}".format(snapshot_path))
     net.eval()
 
