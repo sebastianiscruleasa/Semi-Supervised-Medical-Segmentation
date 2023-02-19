@@ -3,6 +3,7 @@ import argparse
 from networks.unet import UNet_DS, UNet_URPC, UNet_CCT
 #from networks.unet import UNet
 from networks.myUnet import UNet
+from networks.R2UNet import R2UNet
 from networks.efficientunet import Effi_UNet
 from networks.enet import ENet
 from networks.pnet import PNet2D
@@ -79,8 +80,8 @@ def net_factory(net_type="unet", in_chns=1, class_num=3):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if net_type == "unet":
         net = UNet(in_channels=in_chns, out_channels=class_num).to(device)
-    elif net_type == "enet":
-        net = ENet(in_channels=in_chns, num_classes=class_num).cuda()
+    elif net_type == "r2unet":
+        net = R2UNet(in_channels=in_chns, out_channels=class_num).to(device)
     elif net_type == "unet_ds":
         net = UNet_DS(in_chns=in_chns, class_num=class_num).cuda()
     elif net_type == "unet_cct":
