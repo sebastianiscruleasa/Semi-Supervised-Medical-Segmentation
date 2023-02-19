@@ -320,15 +320,15 @@ def train(args, snapshot_path):
         save_mode_path = os.path.join(drive_snapshot_path,
                                       'epochs/model1_epoch_{}_dice_{}.pth'.format(
                                           epoch_num, round(best_performance1, 4)))
-        if epoch_num % 300 == 0:
-            torch.save({
-                'model': model1.state_dict(),
-                'optimizer': optimizer1.state_dict(),
-                'epoch': epoch_num,
-                'loss': model1_loss,
-                'iter': iter_num,
-                'best_performance1': performance1 if performance1 > best_performance1 else best_performance1
-            }, save_mode_path)
+
+        torch.save({
+            'model': model1.state_dict(),
+            'optimizer': optimizer1.state_dict(),
+            'epoch': epoch_num,
+            'loss': model1_loss,
+            'iter': iter_num,
+            'best_performance1': performance1 if performance1 > best_performance1 else best_performance1
+        }, save_mode_path)
 
         if performance1 > best_performance1:
             best_performance1 = performance1
@@ -370,13 +370,12 @@ def train(args, snapshot_path):
         save_mode_path = os.path.join(drive_snapshot_path,
                                       'epochs/model2_epoch_{}_dice_{}.pth'.format(
                                           epoch_num, round(best_performance2, 4)))
-        if epoch_num % 300 == 0:
-            torch.save({
-                'model': model2.state_dict(),
-                'optimizer': optimizer2.state_dict(),
-                'loss': model2_loss,
-                'best_performance2': performance2 if performance2 > best_performance2 else best_performance2
-            }, save_mode_path)
+        torch.save({
+            'model': model2.state_dict(),
+            'optimizer': optimizer2.state_dict(),
+            'loss': model2_loss,
+            'best_performance2': performance2 if performance2 > best_performance2 else best_performance2
+        }, save_mode_path)
 
         if performance2 > best_performance2:
             best_performance2 = performance2
@@ -392,12 +391,11 @@ def train(args, snapshot_path):
 
         model2.train()
 
-        if epoch_num % 300 == 0:
-            for filename in os.listdir(drive_snapshot_path + "/epochs"):
-                if filename.find('_epoch_' + str(epoch_num)) == -1:
-                    file_path = os.path.join(drive_snapshot_path + "/epochs", filename)
-                    open(file_path, 'w').close()
-                    os.remove(file_path)
+        for filename in os.listdir(drive_snapshot_path + "/epochs"):
+            if filename.find('_epoch_' + str(epoch_num)) == -1:
+                file_path = os.path.join(drive_snapshot_path + "/epochs", filename)
+                open(file_path, 'w').close()
+                os.remove(file_path)
 
         if iter_num >= max_iterations:
             iterator.close()
