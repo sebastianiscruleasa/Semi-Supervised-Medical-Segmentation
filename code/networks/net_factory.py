@@ -1,6 +1,8 @@
 import torch
 import argparse
-from networks.unet import UNet, UNet_DS, UNet_URPC, UNet_CCT
+from networks.unet import UNet_DS, UNet_URPC, UNet_CCT
+#from networks.unet import UNet
+from networks.myUnet import UNet
 from networks.efficientunet import Effi_UNet
 from networks.enet import ENet
 from networks.pnet import PNet2D

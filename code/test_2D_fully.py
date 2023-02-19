@@ -27,7 +27,7 @@ def calculate_metric_percase(pred, gt):
     pred[pred > 0] = 1
     gt[gt > 0] = 1
     dice = metric.binary.dc(pred, gt)
-    asd = metric.binary.asd(pred, gt)
+    asd = metric.binary.asd(pred, gt) # Average Surface Distance
     hd95 = metric.binary.hd95(pred, gt)
     return dice, hd95, asd
 
