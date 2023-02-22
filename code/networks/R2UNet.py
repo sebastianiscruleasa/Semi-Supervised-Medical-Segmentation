@@ -25,8 +25,8 @@ class RecurrentResidualBlock(nn.Module):
         super(RecurrentResidualBlock, self).__init__()
         self.conv1x1 = nn.Conv2d(in_channels, out_channels, kernel_size=1)
         self.layers = nn.Sequential(
-            RecurrentBlock(in_channels, out_channels, timestamps),
-            RecurrentBlock(in_channels, out_channels, timestamps),
+            RecurrentBlock(out_channels, timestamps),
+            RecurrentBlock(out_channels, timestamps),
         )
 
     def forward(self, x):
