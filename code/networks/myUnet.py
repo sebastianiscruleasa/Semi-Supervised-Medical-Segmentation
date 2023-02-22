@@ -65,18 +65,23 @@ class UNet(nn.Module):
         self.out = nn.Conv2d(64, out_channels, kernel_size=1)
 
     def forward(self, x):
-        x1 = self.conv1(x)
-        x2 = self.down1(x1)
-        x3 = self.down2(x2)
-        x4 = self.down3(x3)
-        x5 = self.down4(x4)
-        x = self.up1(x5)
-        x = self.conv2(torch.cat([x, x4], dim=1))
-        x = self.up2(x)
-        x = self.conv3(torch.cat([x, x3], dim=1))
-        x = self.up3(x)
-        x = self.conv4(torch.cat([x, x2], dim=1))
-        x = self.up4(x)
-        x = self.conv5(torch.cat([x, x1], dim=1))
-        x = self.out(x)
-        return x
+        encoder1 = self.conv1(x)
+        encoder2 = self.down1(encoder1)
+        encoder3 = self.down2(encoder2)
+        encoder4 = self.down3(encoder3)
+        encoder5 = self.down4(encoder4)
+
+        decoder5 = self.up1(encoder5)
+        decoder5 = self.conv2(torch.cat([encoder4, decoder5], dim=1))
+
+        decoder4 = self.up2(decoder5)
+        decoder4 = self.conv3(torch.cat([encoder3, decoder4], dim=1))
+
+        decoder3 = self.up3(decoder4)
+        decoder3 = self.conv4(torch.cat([encoder2, decoder3], dim=1))
+
+        decoder2 = self.up4(decoder3)
+        decoder2 = self.conv5(torch.cat([encoder1, decoder2], dim=1))
+
+        decoder1 = self.out(decoder2)
+        return decoder1
