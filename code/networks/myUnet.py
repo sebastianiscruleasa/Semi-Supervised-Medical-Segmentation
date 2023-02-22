@@ -54,14 +54,19 @@ class UNet(nn.Module):
         self.down2 = DownBlock(128, 256, dropout=0.2)
         self.down3 = DownBlock(256, 512, dropout=0.3)
         self.down4 = DownBlock(512, 1024, dropout=0.5)
+
         self.up1 = UpBlock(1024, 512)
         self.conv2 = ConvBlock(1024, 512)
+
         self.up2 = UpBlock(512, 256)
         self.conv3 = ConvBlock(512, 256)
+
         self.up3 = UpBlock(256, 128)
         self.conv4 = ConvBlock(256, 128)
+
         self.up4 = UpBlock(128, 64)
         self.conv5 = ConvBlock(128, 64)
+
         self.out = nn.Conv2d(64, out_channels, kernel_size=1)
 
     def forward(self, x):
