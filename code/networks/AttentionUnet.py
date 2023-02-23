@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from code.networks.myUnet import UpBlock, ConvBlock
+from networks.myUnet import UpBlock, ConvBlock
 
 
 class AttentionBlock(nn.Module):
@@ -35,7 +35,7 @@ class AttentionDownBlock(nn.Module):
         super(AttentionDownBlock, self).__init__()
         self.layers = nn.Sequential(
             nn.MaxPool2d(2),
-            AttentionBlock(in_channels, out_channels),
+            ConvBlock(in_channels, out_channels),
         )
 
     def forward(self, x):
@@ -45,7 +45,7 @@ class AttentionDownBlock(nn.Module):
 class AttentionUnet(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(AttentionUnet, self).__init__()
-        self.conv1 = AttentionBlock(in_channels, 64)
+        self.conv1 = ConvBlock(in_channels, 64)
         self.down1 = AttentionDownBlock(64, 128)
         self.down2 = AttentionDownBlock(128, 256)
         self.down3 = AttentionDownBlock(256, 512)
