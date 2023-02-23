@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from networks.myUnet import UpBlock
+from networks.Unet import UpBlock
 
 
 class RecurrentBlock(nn.Module):

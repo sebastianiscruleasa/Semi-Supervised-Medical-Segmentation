@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from networks.myUnet import UpBlock, ConvBlock, DownBlock
+from networks.Unet import UpBlock, ConvBlock, DownBlock
 
 
 class AttentionBlock(nn.Module):

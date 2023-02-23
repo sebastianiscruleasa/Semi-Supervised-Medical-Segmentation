@@ -20,7 +20,7 @@ class ConvBlock(nn.Module):
 
 
 class DownBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, dropout):
+    def __init__(self, in_channels, out_channels, dropout=0):
         super(DownBlock, self).__init__()
         self.layers = nn.Sequential(
             nn.MaxPool2d(2),

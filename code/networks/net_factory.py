@@ -1,14 +1,9 @@
 import torch
 import argparse
-from networks.unet import UNet_DS, UNet_URPC, UNet_CCT
-#from networks.unet import UNet
-from networks.myUnet import UNet
+#from networks.oldUnet import UNet
+from networks.Unet import UNet
 from networks.R2UNet import R2UNet
 from networks.AttentionUnet import AttentionUnet
-from networks.efficientunet import Effi_UNet
-from networks.enet import ENet
-from networks.pnet import PNet2D
-from networks.nnunet import initialize_network
 from networks.vision_transformer import SwinUnet as ViT_seg
 from config import get_config
 
@@ -85,20 +80,9 @@ def net_factory(net_type="unet", in_chns=1, class_num=3):
         net = R2UNet(in_channels=in_chns, out_channels=class_num).to(device)
     elif net_type == "attunet":
         net = AttentionUnet(in_channels=in_chns, out_channels=class_num).to(device)
-    elif net_type == "unet_cct":
-        net = UNet_CCT(in_chns=in_chns, class_num=class_num).cuda()
-    elif net_type == "unet_urpc":
-        net = UNet_URPC(in_chns=in_chns, class_num=class_num).cuda()
-    elif net_type == "efficient_unet":
-        net = Effi_UNet('efficientnet-b3', encoder_weights='imagenet',
-                        in_channels=in_chns, classes=class_num).cuda()
     elif net_type == "ViT_Seg":
         net = ViT_seg(config, img_size=args.patch_size,
                       num_classes=args.num_classes).cuda()
-    elif net_type == "pnet":
-        net = PNet2D(in_chns, class_num, 64, [1, 2, 4, 8, 16]).cuda()
-    elif net_type == "nnUNet":
-        net = initialize_network(num_classes=class_num).cuda()
     else:
         net = None
     return net
