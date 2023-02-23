@@ -4,6 +4,7 @@ import argparse
 from networks.Unet import UNet
 from networks.R2UNet import R2UNet
 from networks.AttentionUnet import AttentionUnet
+from netoworks.AttentionR2Unet import AttentionR2Unet
 from networks.vision_transformer import SwinUnet as ViT_seg
 from config import get_config
 
@@ -80,6 +81,8 @@ def net_factory(net_type="unet", in_chns=1, class_num=3):
         net = R2UNet(in_channels=in_chns, out_channels=class_num).to(device)
     elif net_type == "attunet":
         net = AttentionUnet(in_channels=in_chns, out_channels=class_num).to(device)
+    elif net_type == "attr2unet":
+        net = AttentionR2Unet(in_channels=in_chns, out_channels=class_num).to(device)
     elif net_type == "ViT_Seg":
         net = ViT_seg(config, img_size=args.patch_size,
                       num_classes=args.num_classes).cuda()
