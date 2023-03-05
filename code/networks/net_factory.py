@@ -4,7 +4,7 @@ import argparse
 from networks.Unet import UNet
 from networks.R2UNet import R2UNet
 from networks.AttentionUnet import AttentionUnet
-from netoworks.AttentionR2Unet import AttentionR2Unet
+from networks.AttentionR2Unet import AttentionR2Unet
 from networks.vision_transformer import SwinUnet as ViT_seg
 from config import get_config
 
