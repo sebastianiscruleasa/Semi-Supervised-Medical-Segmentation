@@ -35,11 +35,9 @@ class UpBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(UpBlock, self).__init__()
         self.layers = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=1),
             nn.Upsample(
                 scale_factor=2, mode='bilinear', align_corners=True),
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(),
         )
 
     def forward(self, x):
@@ -49,25 +47,25 @@ class UpBlock(nn.Module):
 class UNet(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(UNet, self).__init__()
-        self.conv1 = ConvBlock(in_channels, 64, dropout=0.05)
-        self.down1 = DownBlock(64, 128, dropout=0.1)
-        self.down2 = DownBlock(128, 256, dropout=0.2)
-        self.down3 = DownBlock(256, 512, dropout=0.3)
-        self.down4 = DownBlock(512, 1024, dropout=0.5)
+        self.conv1 = ConvBlock(in_channels, 16, dropout=0.05)
+        self.down1 = DownBlock(16, 32, dropout=0.1)
+        self.down2 = DownBlock(32, 64, dropout=0.2)
+        self.down3 = DownBlock(64, 128, dropout=0.3)
+        self.down4 = DownBlock(128, 256, dropout=0.5)
 
-        self.up1 = UpBlock(1024, 512)
-        self.conv2 = ConvBlock(1024, 512)
+        self.up1 = UpBlock(256, 128)
+        self.conv2 = ConvBlock(256, 128)
 
-        self.up2 = UpBlock(512, 256)
-        self.conv3 = ConvBlock(512, 256)
+        self.up2 = UpBlock(128, 64)
+        self.conv3 = ConvBlock(128, 64)
 
-        self.up3 = UpBlock(256, 128)
-        self.conv4 = ConvBlock(256, 128)
+        self.up3 = UpBlock(64, 32)
+        self.conv4 = ConvBlock(64, 32)
 
-        self.up4 = UpBlock(128, 64)
-        self.conv5 = ConvBlock(128, 64)
+        self.up4 = UpBlock(32, 16)
+        self.conv5 = ConvBlock(32, 16)
 
-        self.out = nn.Conv2d(64, out_channels, kernel_size=1)
+        self.out = nn.Conv2d(16, out_channels, kernel_size=3, padding=1)
 
     def forward(self, x):
         encoder1 = self.conv1(x)
