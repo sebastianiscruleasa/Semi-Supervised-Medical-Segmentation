@@ -33,30 +33,30 @@ class AttentionBlock(nn.Module):
 class AttentionUnet(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(AttentionUnet, self).__init__()
-        self.conv1 = ConvBlock(in_channels, 64)
+        self.conv1 = ConvBlock(in_channels, 16)
 
-        self.down1 = DownBlock(64, 128)
-        self.down2 = DownBlock(128, 256)
-        self.down3 = DownBlock(256, 512)
-        self.down4 = DownBlock(512, 1024)
+        self.down1 = DownBlock(16, 32)
+        self.down2 = DownBlock(32, 64)
+        self.down3 = DownBlock(64, 128)
+        self.down4 = DownBlock(128, 256)
 
-        self.up1 = UpBlock(1024, 512)
-        self.att1 = AttentionBlock(512, 512, 256)
-        self.conv2 = ConvBlock(1024, 512)
+        self.up1 = UpBlock(256, 128)
+        self.att1 = AttentionBlock(128, 128, 64)
+        self.conv2 = ConvBlock(256, 128)
 
-        self.up2 = UpBlock(512, 256)
-        self.att2 = AttentionBlock(256, 256, 128)
-        self.conv3 = ConvBlock(512, 256)
+        self.up2 = UpBlock(128, 64)
+        self.att2 = AttentionBlock(64, 64, 32)
+        self.conv3 = ConvBlock(128, 64)
 
-        self.up3 = UpBlock(256, 128)
-        self.att3 = AttentionBlock(128, 128, 64)
-        self.conv4 = ConvBlock(256, 128)
+        self.up3 = UpBlock(64, 32)
+        self.att3 = AttentionBlock(32, 32, 16)
+        self.conv4 = ConvBlock(64, 32)
 
-        self.up4 = UpBlock(128, 64)
-        self.att4 = AttentionBlock(64, 64, 32)
-        self.conv5 = ConvBlock(128, 64)
+        self.up4 = UpBlock(32, 16)
+        self.att4 = AttentionBlock(16, 16, 8)
+        self.conv5 = ConvBlock(32, 16)
 
-        self.out = nn.Conv2d(64, out_channels, kernel_size=1)
+        self.out = nn.Conv2d(16, out_channels, kernel_size=3, padding=1)
 
     def forward(self, x):
         encoder1 = self.conv1(x)
