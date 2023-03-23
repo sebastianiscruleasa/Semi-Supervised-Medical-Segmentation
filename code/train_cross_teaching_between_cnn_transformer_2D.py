@@ -341,8 +341,9 @@ def train(args, snapshot_path):
                 'loss': model1_loss,
                 'iter': iter_num,
             }, save_best)
-            logging.info(
-                'epoch %d : model1_mean_dice : %f model1_mean_hd95 : %f' % (epoch_num, performance1, mean_hd951))
+
+        logging.info(
+            'epoch %d : model1_mean_dice : %f model1_mean_hd95 : %f' % (epoch_num, performance1, mean_hd951))
 
         model1.train()
 
@@ -386,8 +387,9 @@ def train(args, snapshot_path):
                 'optimizer': optimizer2.state_dict(),
                 'loss': model2_loss
             }, save_best)
-            logging.info(
-                'epoch %d : model2_mean_dice : %f model2_mean_hd95 : %f' % (epoch_num, performance2, mean_hd952))
+
+        logging.info(
+            'epoch %d : model2_mean_dice : %f model2_mean_hd95 : %f' % (epoch_num, performance2, mean_hd952))
 
         model2.train()
 
