@@ -1,6 +1,7 @@
 import torch
 from torch import nn
-from networks.Unet import UpBlock
+# from networks.Unet import UpBlock
+from networks.NewAttentionUnet import UpConv as UpBlock
 
 
 class RecurrentBlock(nn.Module):
@@ -10,12 +11,13 @@ class RecurrentBlock(nn.Module):
         self.layers = nn.Sequential(
             nn.Conv2d(channels, channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(channels),
-            nn.LeakyReLU()
+            nn.ReLU(inplace=True),
+            # nn.LeakyReLU()
         )
 
     def forward(self, x):
         previous_state = self.layers(x)
-        for i in range(self.timestamps):
+        for i in range(1, self.timestamps):
             previous_state = self.layers(x + previous_state)
         return previous_state
 
@@ -39,7 +41,7 @@ class RecurrentResidualDownBlock(nn.Module):
     def __init__(self, in_channels, out_channels, timestamps=2):
         super(RecurrentResidualDownBlock, self).__init__()
         self.layers = nn.Sequential(
-            nn.MaxPool2d(2),
+            nn.MaxPool2d(2, stride=2),
             RecurrentResidualConvBlock(in_channels, out_channels, timestamps),
         )
 

@@ -2,7 +2,8 @@ import torch
 from torch import nn
 from networks.Unet import UpBlock, ConvBlock
 from networks.R2Unet import RecurrentResidualConvBlock, RecurrentResidualDownBlock
-from networks.AttentionUnet import AttentionBlock
+# from networks.AttentionUnet import AttentionBlock
+from networks.NewAttentionUnet import AttentionBlock
 
 
 class AttentionR2Unet(nn.Module):

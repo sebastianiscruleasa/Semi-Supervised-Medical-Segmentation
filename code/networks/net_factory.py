@@ -1,10 +1,19 @@
 import torch
 import argparse
-#from networks.oldUnet import UNet
+from networks.Pnet import PNet2D
+from networks.oldUnet import UNet as OldUnet
 from networks.Unet import UNet
+from networks.UNetOtherVersions import UNet_DS, UNet_URPC, UNet_CCT
+from networks.EfficientUNet import Effi_UNet
+from networks.ENet import ENet
 from networks.R2Unet import R2UNet
 from networks.AttentionUnet import AttentionUnet
 from networks.AttentionR2Unet import AttentionR2Unet
+from networks.AttentionR2UNetV2 import R2AttU_Net
+from networks.NewAttentionUnet import AttentionUNet
+from networks.R2UNetV2 import R2U_Net as NewR2Unet
+# from networks.deeplabv3 import
+from networks.deeplabv3 import deeplabv3_resnet50
 from networks.vision_transformer import SwinUnet as ViT_seg
 from config import get_config
 
@@ -77,12 +86,36 @@ def net_factory(net_type="unet", in_chns=1, class_num=3):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if net_type == "unet":
         net = UNet(in_channels=in_chns, out_channels=class_num).to(device)
+    elif net_type == "oldunet":
+        net = OldUnet(in_chns=in_chns, class_num=class_num).to(device)
     elif net_type == "r2unet":
         net = R2UNet(in_channels=in_chns, out_channels=class_num).to(device)
+    elif net_type == "newr2unet":
+        net = NewR2Unet(in_channels=in_chns, out_channels=class_num).to(device)
     elif net_type == "attunet":
         net = AttentionUnet(in_channels=in_chns, out_channels=class_num).to(device)
+    elif net_type == "newattunet":
+        net = AttentionUNet(img_ch=in_chns, output_ch=class_num).to(device)
     elif net_type == "attr2unet":
         net = AttentionR2Unet(in_channels=in_chns, out_channels=class_num).to(device)
+    elif net_type == "newattr2unet":
+        net = R2AttU_Net(img_ch=in_chns, output_ch=class_num).to(device)
+    elif net_type == "pnet":
+        net = PNet2D(in_chns, class_num, 64, [1, 2, 4, 8, 16]).to(device)
+    elif net_type == "unet_ds":
+        net = UNet_DS(in_chns=in_chns, class_num=class_num).to(device)
+    elif net_type == "unet_cct":
+        net = UNet_CCT(in_chns=in_chns, class_num=class_num).to(device)
+    elif net_type == "unet_urpc":
+        net = UNet_URPC(in_chns=in_chns, class_num=class_num).to(device)
+    elif net_type == "efficient_unet":
+        net = Effi_UNet('efficientnet-b3', encoder_weights='imagenet',
+                        in_channels=in_chns, classes=class_num).to(device)
+    elif net_type == "enet":
+        net = ENet(in_channels=in_chns, num_classes=class_num).to(device)
+    elif net_type == "deeplabv3":
+        # net = DeepLabV3(num_classes=class_num).to(device)
+        net = deeplabv3_resnet50(num_classes=class_num).to(device)
     elif net_type == "ViT_Seg":
         net = ViT_seg(config, img_size=args.patch_size,
                       num_classes=args.num_classes).cuda()

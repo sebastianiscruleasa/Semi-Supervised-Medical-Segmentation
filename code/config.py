@@ -47,6 +47,7 @@ _C.MODEL.TYPE = 'swin'
 # Model name
 _C.MODEL.NAME = 'swin_tiny_patch4_window7_224'
 # Checkpoint to resume, could be overwritten by command line argument
+_C.MODEL.PRETRAIN_CKPT = './pretrained_ckpt/swin_tiny_patch4_window7_224.pth'
 _C.MODEL.PRETRAIN_CKPT_MODEL1 = None
 _C.MODEL.PRETRAIN_CKPT_MODEL2 = None
 _C.MODEL.RESUME = ''

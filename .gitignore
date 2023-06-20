@@ -139,4 +139,19 @@ test.py
 /.idea/
 
 #ACDC dataset
-/data/ACDC/data/
+/data/ACDC/data
+
+#Synapse dataset
+/data/Synapse/data
+
+#SynapseNotGood dataset
+/data/SynapseNotGood
+
+#SynapseOld dataset
+/data/SynapseOld
+
+#LiTS dataset
+/data/LITS17
+
+#Brats2019 dataset
+/data/BraTS2019

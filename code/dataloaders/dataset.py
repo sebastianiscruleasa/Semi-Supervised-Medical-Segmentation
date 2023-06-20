@@ -7,6 +7,8 @@ from scipy.ndimage.interpolation import zoom
 import itertools
 from scipy import ndimage
 from torch.utils.data.sampler import Sampler
+from torch.nn.functional import interpolate
+from torchvision import transforms
 
 
 class BaseDataSets(Dataset):
@@ -103,6 +105,64 @@ class RandomGenerator(object):
         image = torch.from_numpy(image.astype(np.float32)).unsqueeze(0)
         label = torch.from_numpy(label.astype(np.uint8))
         sample = {"image": image, "label": label}
+        return sample
+
+
+class SynapseResize(object):
+    def __init__(self, output_size):
+        self.output_size = output_size
+
+    def __call__(self, sample):
+        # image, label = torch.from_numpy(sample["image"]), torch.from_numpy(sample["label"])
+        # image = image.resize_(self.output_size)
+        # label = label.resize_(self.output_size)
+        # image = np.array(image)
+        # label = np.array(label)
+
+        image, label = sample["image"], sample["label"]
+        image = np.resize(image, (224, 224))
+        label = np.resize(label, (224, 224))
+
+        # to_pil_transform = transforms.ToPILImage()
+        # image = to_pil_transform(image)
+        # label = to_pil_transform(label)
+        # resize_transform = transforms.Resize(self.output_size)
+        # image = resize_transform(image)
+        # label = resize_transform(label)
+        # image = np.array(image)
+        # label = np.array(label)
+        sample = {"image": image, "label": label}
+        return sample
+
+
+class SynapseValResize(object):
+    def __init__(self, output_size):
+        self.output_size = output_size
+
+    def __call__(self, sample):
+        # image, label = torch.from_numpy(sample["image"]), torch.from_numpy(sample["label"])
+        # image = image.view(image.shape[0], 1, image.shape[1], image.shape[2])
+        # label = label.view(label.shape[0], 1, label.shape[1], label.shape[2])
+        # image = interpolate(image, self.output_size, mode="nearest")
+        # label = interpolate(label, self.output_size, mode="nearest")
+        # image = image.view(image.shape[0], image.shape[2], image.shape[3])
+        # label = label.view(label.shape[0], label.shape[2], label.shape[3])
+
+        # image, label = sample["image"], sample["label"]
+        # image = np.resize(image, (89, 224, 224))
+        # label = np.resize(label, (89, 224, 224))
+        image, label = sample["image"], sample["label"]
+        # newImageArray = np.resize(image, (89, 224, 224))
+        # newLabelArray = np.resize(label, (89, 224, 224))
+        newImageArray = np.empty((image.shape[0], 224, 224))
+        newLabelArray = np.empty((image.shape[0], 224, 224))
+        # resize_transform = transforms.Resize(self.output_size)
+        # to_pil_transform = transforms.ToPILImage()
+        for i in range(image.shape[0]-1):
+            newImageArray[i, :, :] = np.resize(image[i, :, :], (224, 224))
+            newLabelArray[i, :, :] = np.resize(label[i, :, :], (224, 224))
+
+        sample = {"image": newImageArray, "label": newLabelArray}
         return sample
 
 
